@@ -3,10 +3,6 @@
 # LangChain (LCEL) + Streamlit
 # ============================================
 
-# =========================
-# 1. IMPORTAÇÕES
-# =========================
-
 import os
 import streamlit as st
 from dotenv import load_dotenv
@@ -14,14 +10,10 @@ from dotenv import load_dotenv
 # Carrega as variáveis de ambiente
 load_dotenv()
 
-# Loaders e chunking
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-# Embeddings e LLM
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-# Vector Store
 from langchain_community.vectorstores import Chroma
-# Imports Modernos do LCEL
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -29,13 +21,13 @@ from langchain_core.output_parsers import StrOutputParser
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PERSIST_DIRECTORY = os.path.join(BASE_DIR, "chroma_rh")
 
-# Configuração das chaves e clientes globais
+# Configuração das chaves e clients 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.5, api_key=OPENAI_API_KEY)
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small", api_key=OPENAI_API_KEY)
 
 # =========================
-# 3. LEITURA DOS DOCUMENTOS
+# 1. LEITURA DOS DOCUMENTOS
 # =========================
 
 # Definindo a pasta onde ficam os PDFs
@@ -66,7 +58,7 @@ def carregar_documentos():
     return documentos
 
 # =========================
-# 4. CHUNKING
+# 2. CHUNKING
 # =========================
 
 def gerar_chunks(documentos):
@@ -77,7 +69,7 @@ def gerar_chunks(documentos):
     return splitter.split_documents(documentos)
 
 # =========================
-# 5. ENRIQUECIMENTO COM METADADOS
+# 3. ENRIQUECIMENTO COM METADADOS
 # =========================
 
 def enriquecer_chunks(chunks):
@@ -94,7 +86,7 @@ def enriquecer_chunks(chunks):
     return chunks
 
 # =========================
-# 6. VECTOR STORE
+# 4. VECTOR STORE
 # =========================
 
 @st.cache_resource
@@ -107,7 +99,7 @@ def criar_vectorstore(_chunks):
     return vectorstore
 
 # =========================
-# 7. RERANKING 
+# 5. RERANKING 
 # =========================
 
 def rerank_documentos(pergunta, documentos, llm):
@@ -145,7 +137,7 @@ Responda apenas com um número de 0 a 10.
     return [doc for _, doc in documentos_ordenados]
 
 # =========================
-# 8. PIPELINE RAG COMPLETO 
+# 6. PIPELINE RAG COMPLETO 
 # =========================
 
 def responder_pergunta(pergunta, vectorstore):
@@ -164,15 +156,15 @@ def responder_pergunta(pergunta, vectorstore):
 
     # 3. Construção da cadeia de Geração final
     prompt_final = ChatPromptTemplate.from_template("""
-Você é um agente de RH corporativo.
-Responda APENAS com base nas políticas internas abaixo.
+    Você é um agente de RH corporativo.
+    Responda APENAS com base nas políticas internas abaixo.
 
-Contexto:
-{context}
+    Contexto:
+    {context}
 
-Pergunta:
-{question}
-""")
+    Pergunta:
+    {question}
+    """)
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
@@ -194,11 +186,11 @@ Pergunta:
     return resposta_texto, contexto_final
 
 # =========================
-# 9. INTERFACE STREAMLIT
+# 7. INTERFACE STREAMLIT
 # =========================
 
-st.set_page_config(page_title="Agente de RH com RAG", layout="wide")
-st.title("Agente de RH — Políticas Internas")
+st.set_page_config(page_title="Assistente de RH com RAG", layout="wide")
+st.title("Assistente de RH — Políticas Internas")
 
 pergunta = st.text_input("Digite sua pergunta sobre políticas internas de RH:")
 
@@ -218,7 +210,7 @@ if pergunta:
         st.subheader("Resposta")
         st.write(resposta)
 
-        st.subheader("Fontes utilizadas (Após Reranking)")
+        st.subheader("Fontes utilizadas")
         for i, doc in enumerate(fontes, start=1):
             st.markdown(f"**Trecho {i}**")
             st.write(f"Documento: {doc.metadata.get('documento')}")
